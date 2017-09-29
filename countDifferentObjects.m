@@ -4,7 +4,7 @@ function nDifferentObjects = countDifferentObjects(links2, thresholdNoObjects, t
 distances = links2(:,3);
 maxDistance = max(distances);
 
-if(maxDistance<0.002)
+if(maxDistance<0.006)
     nDifferentObjects = 0;
 else
     % excluding distances less than the thresholdNoObjects

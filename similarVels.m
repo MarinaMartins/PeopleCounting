@@ -17,7 +17,9 @@ for i = 1:nObjects
     if(cluster4(i,1)>minMag)
         for j = (i+1):nObjects
             if(cluster4(j,1)>minMag)
-                if( abs(clusterPhase(i)-clusterPhase(j))< phaseThreshold && ((cluster4(i,1)-cluster4(j,1))<magThreshold))
+               realPhaseDifference = calculateRealPhaseDifference(cluster4(i,4),cluster4(j,4));
+              % realPhaseDifference = abs(cluster4(i,4)-cluster4(j,4));
+                if(realPhaseDifference< phaseThreshold && ((cluster4(i,1)-cluster4(j,1))<magThreshold))
                     similarVelReduced(j,:)=similarVelReduced(i,:);
                 end
                 

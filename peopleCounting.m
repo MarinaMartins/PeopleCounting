@@ -35,7 +35,7 @@ videoName20 = strcat(pwd, '\videos\EnterExitCrossingPaths2front.mpg'); %DA PRA A
 N = 32;
 
 % Reading the video
-vidReader = VideoReader(videoName7);
+vidReader = VideoReader(videoName1);
 
 % Taking video information
 
@@ -58,6 +58,8 @@ opticFlow = opticalFlowLK('NoiseThreshold', 0.009);
 
 
 frameReal = 1; frame5to5 = 1; frame25to25 = 1;
+% medianPixelsInTime = extractBackground( videoName1 );
+
 while hasFrame(vidReader)
     % Reading frame
     frameRGB = readFrame(vidReader);
@@ -65,6 +67,7 @@ while hasFrame(vidReader)
     % Defining ROI
     if(frameReal == 1)
         % BW = roipoly(frameRGB);
+        load('BW1.mat')
     end
     
     % Skipping 5 frames
@@ -75,8 +78,11 @@ while hasFrame(vidReader)
         % Filtrando usando imfilter - ficaram praticamente iguais
         G = fspecial('gaussian',[5 5],0.5);
         frameGrayFiltered = imfilter(frameGray, G,'same');
-        load('BW7.mat')
         frameGrayFilteredMasked = frameGrayFiltered.*uint8(BW);
+        
+%         frameGrayFilteredMasked = frameGrayFilteredMasked-medianPixelsInTime;
+%         imshow(frameGrayFilteredMasked);
+%         keyboard;
         
         % Compute optical flow
         flow = estimateFlow(opticFlow, frameGrayFilteredMasked);
@@ -105,6 +111,7 @@ while hasFrame(vidReader)
                 for j = 1:(width/N)
                     index = indicesOfMax(i,j);
                     blocksVelTemporalFiltered(i,j, :) = blocksVel5(i,j,:,index);
+                    blocksVelTemporalFilteredMag(i,j) = (blocksVelTemporalFiltered(i,j, 1)^2 + blocksVelTemporalFiltered(i,j, 2)^2)^(1/2);
                 end
             end
             
@@ -112,12 +119,13 @@ while hasFrame(vidReader)
             subplot(2,2,1);
             plot(blocksVelTemporalFiltered(:,:,1),blocksVelTemporalFiltered(:,:,2), 'bx');
             axis([-.5 .5 -.5 .5]);
-            subplot(2,2,2);
+            title('D')
             
-            % blocksVelTemporalFilteredPlot(:,:) = blocksVelTemporalFiltered(end:-1:1);
-            
-            
+            subplot(2,2,2);            
+            % blocksVelTemporalFilteredPlot(:,:) = blocksVelTemporalFiltered(end:-1:1);      
             quiver(blocksVelTemporalFiltered(:,:,1),blocksVelTemporalFiltered(:,:,2));
+            title('E')
+            
             % Transforming multidimensional array in matrix Nx2, with velx and vely
             clusterVel = reshape(blocksVelTemporalFiltered, height*width / (N*N), 2);
 %             clusterVelSemZeros = [];
@@ -144,10 +152,16 @@ while hasFrame(vidReader)
             subplot(2,2,3);
             %figure(3);
             dend = dendrogram(links);
+            xlabel('Índices dos objetos') 
+            ylabel('Distância dos clusters')
+            title('F')
             % Plotting distances * distances
             subplot(2,2,4);
             %figure(4);
             plot(links(:,3), links(:,3),'bo')
+            title('G')
+            xlabel('Distância dos clusters') 
+            ylabel('Distância dos clusters')
             
             
             % Transforming multidimensional array in matrix Nx2, with velx and vely
@@ -181,41 +195,62 @@ while hasFrame(vidReader)
             subplot(2,2,1);
             plot(blocksVelTemporalFiltered2(:,:,1),blocksVelTemporalFiltered2(:,:,2), 'rx');
             axis([-.5 .5 -.5 .5]);
-            subplot(2,2,2);
-            quiver(blocksVelTemporalFiltered2(:,:,1),blocksVelTemporalFiltered2(:,:,2));
+            title('H')
             
+            subplot(2,2,2);
+            quiver(blocksVelTemporalFiltered2(:,:,1),blocksVelTemporalFiltered2(:,:,2),'color', [1 0 0]);
+            title('I')
             
             subplot(2,2,3);
             %figure(3);
-            dend2 = dendrogram(links2);
+            dend2 = dendrogram(links2);  
+            title('J')
+            xlabel('Índices dos objetos') 
+            ylabel('Distância dos clusters') 
             % Plotting distances * distances
             subplot(2,2,4);
             %figure(4);
-            plot(links2(:,3), links2(:,3),'bo')
+            plot(links2(:,3), links2(:,3),'ro')
+            title('K')
+            xlabel('Distância dos clusters') 
+            ylabel('Distância dos clusters')
             
             
-            nDifferentObjects = countDifferentObjects(links2, 0.15, 0.1);
+            vectorDifferentObjects(frame25to25) = countDifferentObjects(links2, 0.15, 0.1);
+            
+            vectorDifferentObjectsNoFilter(frame25to25) = countDifferentObjects(links, 0.35, 0.1);
             disp('Number of Different Objects = ')
-            disp(nDifferentObjects)
-            vectorDifferentObjects(frame25to25) = nDifferentObjects;
-            
-            frame25to25 = frame25to25 + 1;
-            
-            
+            disp(vectorDifferentObjectsNoFilter(frame25to25))
+          
             blocksMag5 = zeros(height/N, width/N, 5);
             blocksVel5 = zeros(height/N, width/N, 2, 5);
-            % keyboard;
+            
+            frame25to25 = frame25to25 + 1;
+            keyboard;
         end
         
         
         % Display video frame with flow vectors with decimation
         figure(1);
-        subplot(2,1,1);
+        subplot(1,3,1);
         %figure(1);
-        imshow(frameGrayFilteredMasked)
+        %imshow(frameGrayFilteredMasked)
+        imshow(frameRGB)
+        title('A')
         hold on
         plot(flow, 'DecimationFactor', [4 4], 'ScaleFactor', 10)
         hold off
+        
+        subplot(1,3,2);
+        %figure(1);
+        %imshow(frameGrayFilteredMasked)
+        imshow(frameGrayFilteredMasked)
+        title('B')
+        hold on
+        plot(flow, 'DecimationFactor', [4 4], 'ScaleFactor', 10)
+        hold off
+        
+        
         
         
         % Display blocks
@@ -224,12 +259,15 @@ while hasFrame(vidReader)
         for i = 1:N:height
             for j = 1:N:width
                 showBlocks(i:(i+N-1), j:(j+N-1)) = blocksMag(((i-1)/N)+1, ((j-1)/N)+1 ) ;
+                %showBlocksTemporalFiltered(i:(i+N-1), j:(j+N-1)) = blocksVelTemporalFilteredMag(((i-1)/N)+1, ((j-1)/N)+1 ) ;
+
             end
         end
         figure(1);
-        f2 = subplot(2,1,2);
+        f2 = subplot(1,3,3);
         %figure(2);
         imshow(showBlocks);
+        title('C')
         colormap(f2, 'jet');
         
         %         Display video frames with flow vectors without decimation
