@@ -3,8 +3,10 @@
 % bons exemplos de 3 pessoas
 vectorDifferentObjects1x32  = [2 2 2 4 2 3 3 3 3 3 2 2 2 2 2];
 vectorDifferentObjects1min6 = [2,2,2,4,2,3,3,3,3,3,2,2,2,2,2];
+              vector1NOVONF = [2,2,2,3,2,2,2,2,2,2,2,2,2,2,2];
 vectorDifferentObjects1Fase = [2,2,2,3,2,2,2,2,2,2,2,2,2,2,2];
 vectorDifferentObjects1NoFilter = [3,3,3,3,1,4,4,4,4,3,5,4,1,1,1];
+          vector1NOVOSF     = [2,3,3,3,1,4,4,4,4,3,5,4,1,1,1];
 groundTruthVideo1 =          [2 2 3 3 3 3 3 3 3 3 3 3 3 2 2];
 vectorDifferentObjects1x16 = [2,3,2,3,2,3,4,4,3,3,2,4,2,2,4];
 vectorDifferentObjects1x8  = [3,2,3,3,3,5,3,3,3,3,3,4,2,2,5];

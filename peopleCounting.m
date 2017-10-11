@@ -24,14 +24,8 @@ videoName17 = strcat(pwd, '\videos\WalkByShop1cor.mpg');% MAIS OU MENOS
 videoName18 = strcat(pwd, '\videos\WalkByShop1front.mpg'); %ruim
 videoName19 = strcat(pwd, '\videos\EnterExitCrossingPaths2cor.mpg'); % DA PRA APROVEITAR ALGUNS FRAMES
 videoName20 = strcat(pwd, '\videos\EnterExitCrossingPaths2front.mpg'); %DA PRA APROVEITAR
-% OLHAR DE NOVO E FAZER 19 E 20
 
-
-set(gca,'fontsize',24);
-
-
-
-% Block size N can be 4,8,16,32
+% Block size N can be 8,16,32
 N = 32;
 
 % Reading the video
@@ -45,7 +39,7 @@ nFramesReal = vidReader.FrameRate * vidReader.Duration;
 
 nFrames = floor(nFramesReal/5);
 
-showBlocks = zeros(height, width);
+
 blockFramesMag = zeros(height/N, width/N, nFrames);
 
 blocksMag5 = zeros(height/N, width/N, 5);
@@ -96,14 +90,7 @@ while hasFrame(vidReader)
         % Creating magnitude and velocity blocks NxN
         % Each block value is the mean of pixels values
         [blocksVel, blocksMag] = createBlocksNxN(N, height, width, medianFlowVx, medianFlowVy);
-        aux = blocksVel(:,:,1);
-        aux = aux(end:-1:1,:);
-        figure(55);quiver(aux,blocksVel(:,:,2), 'LineWidth',4);
-        title('Velocidades por Blocos',  'FontSize',40)
-            set(gca,'DefaultTextFontSize',40)           
-            set(gca,'FontSize',40)
-            set(gca, 'XTick',0:2:12, 'FontSize',40)  
-            set(gca, 'YTick',0:2:10, 'FontSize',40)
+        % plotBlocksVelAsQuiver( blocksVel );
         
         [blocksVel5, blocksMag5] = storesUpTo5Frames(N, height, width, frame5to5, blocksVel, blocksMag, blocksVel5, blocksMag5);
         % keyboard;
@@ -118,143 +105,26 @@ while hasFrame(vidReader)
                 end
             end
             
-            figure(3);
-            
-            % subplot(2,2,1);
-            plot(blocksVelTemporalFiltered(:,:,1),blocksVelTemporalFiltered(:,:,2), 'bx', 'LineWidth',4, 'MarkerSize', 30);
-            axis([-.5 .5 -.5 .5]);
-            title('Velocidades como Pontos', 'FontSize',40)
-            set(gca,'DefaultTextFontSize',35)           
-            set(gca,'FontSize',35)
-            set(gca, 'XTick',-.5:0.1:.5, 'FontSize',35)  
-            set(gca, 'YTick',-.5:0.25:.5, 'FontSize',35) 
-            
-            
-            figure(4);
-            % subplot(2,2,2);            
-            % blocksVelTemporalFilteredPlot(:,:) = blocksVelTemporalFiltered(end:-1:1);  
-            aux = blocksVelTemporalFiltered(:,:,1);
-            aux = aux(end:-1:1,:);
-            quiver(aux,blocksVelTemporalFiltered(:,:,2), 'LineWidth',4);
-            title('Velocidades por Blocos',  'FontSize',40)
-            set(gca,'DefaultTextFontSize',40)           
-            set(gca,'FontSize',40)
-            set(gca, 'XTick',0:2:12, 'FontSize',40)  
-            set(gca, 'YTick',0:2:10, 'FontSize',40)
+            plotBlocksVelTemporalFiltered( blocksVelTemporalFiltered, 'nofilter' );
             
             % Transforming multidimensional array in matrix Nx2, with velx and vely
             clusterVel = reshape(blocksVelTemporalFiltered, height*width / (N*N), 2);
-           
-            % Calculating distances between velocities
-            distances = pdist(clusterVel);
-            % Calculating links
-            links = linkage(distances);
-            
-            c(frame25to25) = cophenet(links, distances);
-            disp(c(frame25to25));
-            
-            %inconsistency = inconsistent(links);
-            %maxInconsistency = max(inconsistency(:,4));
-            %T = cluster(links,'cutoff',0.8);
-            %numberClusters = length(unique(T));
-            % Creating and plotting dendrogram
-            
-            % subplot(2,2,3);
-            figure(5);
-            dend = dendrogram(links);
-            set(dend,'LineWidth',4)
-            set(gca,'DefaultTextFontSize',24)           
-            set(gca,'FontSize',24)
-            xlabel('Índices dos objetos', 'FontSize',40) 
-            ylabel('Distância dos clusters', 'FontSize',40)
-            title('Dendrograma', 'FontSize',40)
-            
-   
-            
-            % Plotting distances * distances
-            %subplot(2,2,4);
-            figure(6);
-            plot(links(:,3), links(:,3),'bo', 'LineWidth',4, 'MarkerSize', 30)
-            set(gca,'DefaultTextFontSize',35)           
-            set(gca,'FontSize',35)
-            title('Distância x Distância', 'FontSize',40)
-            xlabel('Distância dos clusters', 'FontSize',40) 
-            ylabel('Distância dos clusters', 'FontSize',40)
-            
-            
-            
-            
-            % Transforming multidimensional array in matrix Nx2, with velx and vely
-            %clusterVel = reshape(blocksVelTemporalFiltered, height*width / (N*N), 2);
+            % Transforming multidimensional array in matrix Nx1, with magnitudes
             clusterMag= reshape(blocksMagTemporalFiltered, height*width / (N*N), 1);
-            [ similarVelReduced, cluster4] = similarVels( clusterVel, clusterMag );
+
+            % Filtering similar velocity vectors
+            [ similarVelReduced, cluster4] = filterSimilarVels( clusterVel, clusterMag );
             
-%             similarVelReducedSemZeros = [];
-%             for i = 1:(length(similarVelReduced))
-%                 if(similarVelReduced(i,:) ~= [0 0])
-%                     similarVelReducedSemZeros = [similarVelReducedSemZeros ;similarVelReduced(i,:)];
-%                 end
-%             end
-            
-            % Calculating distances between velocities
-            distances2 = pdist(similarVelReduced);
-            % Calculating links
-            links2 = linkage(distances2);
-            
-            
-            c2(frame25to25) = cophenet(links2, distances2);
-            %inconsistency = inconsistent(links);
-            %maxInconsistency = max(inconsistency(:,4));
-            %T = cluster(links,'cutoff',0.8);
-            %numberClusters = length(unique(T));
-            % Creating and plotting dendrogram
-           
-            
+            % Creating multidimensional array (height/N)x(width /N, 2), in
+            % order to visualize        
             blocksVelTemporalFiltered2 = reshape(similarVelReduced, height/N,width /N, 2);
-            
-            %subplot(2,2,1);
-            figure(10);
-            plot(blocksVelTemporalFiltered2(:,:,1),blocksVelTemporalFiltered2(:,:,2), 'rx','LineWidth',4, 'MarkerSize', 30); 
-            axis([-.5 .5 -.5 .5]);
-            title('Velocidades como Pontos', 'FontSize',40)
-            set(gca,'DefaultTextFontSize',35)           
-            set(gca,'FontSize',35)
-            set(gca, 'XTick',-.5:0.1:.5, 'FontSize',35)  
-            set(gca, 'YTick',-.5:0.25:.5, 'FontSize',35) 
-            
-            %subplot(2,2,2);
-            figure(11);
-            quiver(blocksVelTemporalFiltered2(:,:,1),blocksVelTemporalFiltered2(:,:,2),'color', [1 0 0], 'LineWidth',4);           
-            title('Velocidades por Blocos',  'FontSize',40)
-            set(gca,'DefaultTextFontSize',40)           
-            set(gca,'FontSize',40)
-            set(gca, 'XTick',0:2:12, 'FontSize',40)  
-            set(gca, 'YTick',0:2:10, 'FontSize',40)
-            
-            %subplot(2,2,3);
-            figure(12);
-            dend2 = dendrogram(links2); 
-            set(dend2,'Color','red')
-            set(dend2,'LineWidth',4)
-            set(gca,'DefaultTextFontSize',24)           
-            set(gca,'FontSize',24)
-            xlabel('Índices dos objetos', 'FontSize',40) 
-            ylabel('Distância dos clusters', 'FontSize',40)
-            title('Dendrograma', 'FontSize',40)
-            
-            
-       
-            % Plotting distances * distances
-            % subplot(2,2,4);
-            figure(13);
-            plot(links2(:,3), links2(:,3),'ro', 'LineWidth',4, 'MarkerSize', 30)
-             title('Distância x Distância', 'FontSize',40)
-            xlabel('Distância dos clusters', 'FontSize',40) 
-            ylabel('Distância dos clusters', 'FontSize',40)
-            set(gca,'DefaultTextFontSize',35)           
-            set(gca,'FontSize',35)
-            
-           
+            plotBlocksVelTemporalFiltered( blocksVelTemporalFiltered2, 'withFilter' );
+
+            % Hierarchical Clustering
+           [ distances, links, c, dend ] = hierarchicalClustering( clusterVel, 'nofilter', frame25to25 );           
+           [ distances2, links2, c2, ~ ] = hierarchicalClustering( similarVelReduced, 'withFilter',  frame25to25 );
+                   
+           % Estimated number of people
             vectorDifferentObjects(frame25to25) = countDifferentObjects(links2, 0.15, 0.1);
             
             vectorDifferentObjectsNoFilter(frame25to25) = countDifferentObjects(links, 0.35, 0.1);
@@ -265,66 +135,17 @@ while hasFrame(vidReader)
             disp(vectorDifferentObjects(frame25to25))
             
             disp('Frame25to25 = ')
-            disp(frame25to25)
-            
-            
+            disp(frame25to25)          
           
             blocksMag5 = zeros(height/N, width/N, 5);
             blocksVel5 = zeros(height/N, width/N, 2, 5);
             
             frame25to25 = frame25to25 + 1;
-           % keyboard;
+           keyboard;
         end
         
-        
-        % Display video frame with flow vectors with decimation
-              
-        f1 = figure(1); hAxes = gca;        
-        imshow(frameRGB, 'Parent', hAxes, 'Border','tight' )  ;    
-        title(hAxes, 'Frame RGB', 'FontSize',35);
-%         hold on
-%         plot(flow, 'DecimationFactor', [4 4], 'ScaleFactor', 10)
-%         hold off
-        
-        figure(2);
-        
-        imshow(frameGrayFilteredMasked, 'Border','tight');
-        title('Frame Tons de Cinza Mascarado', 'FontSize',35);
-        
-        figure(25);
-        
-        imshow(frameGrayFilteredMasked,'Border','tight');
-        title('Frame com OpticalFlow', 'FontSize',35);
-        
-        hold on
-        plot(flow, 'DecimationFactor', [4 4], 'ScaleFactor', 10)
-        hold off
-        
-        
-        
-        
-        % Display blocks
-        % In order to show the magnitudes, we go back to the
-        % original dimensions(instead of the blocked dimensions), so we can have a better visualization
-        for i = 1:N:height
-            for j = 1:N:width
-                showBlocks(i:(i+N-1), j:(j+N-1)) = blocksMag(((i-1)/N)+1, ((j-1)/N)+1 ) ;
-                %showBlocksTemporalFiltered(i:(i+N-1), j:(j+N-1)) = blocksVelTemporalFilteredMag(((i-1)/N)+1, ((j-1)/N)+1 ) ;
-
-            end
-        end
-        
-        f2 = figure(35);
-        
-        imshow(showBlocks, 'Border','tight');
-        colormap(f2, 'jet');
-        
-        %         Display video frames with flow vectors without decimation
-        %         figure(3);imshow(frameRGB)
-        %         hold on
-        %         plot(flow, 'ScaleFactor', 10)
-        %         hold off   s
-        
+        showFrames(frameRGB, frameGrayFilteredMasked); % if want to show flow, add parameter flow      
+        % showBlocksOriginalDimensions(N, height, width, blocksMag);       
         % keyboard;
         frame5to5 = frame5to5 + 1;
     end
