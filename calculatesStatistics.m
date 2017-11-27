@@ -1,23 +1,17 @@
-function [ tabelaEstatisticas, mediaErroAbsoluto, mediaAcertoPercentual, mediaVetorCalculado, mediaGroundTruth] = calculaEstatisticas( groundTruthVideo, vectorDifferentObjects )
+function [mediaVetorCalculado, mediaGroundTruth, mediaErroAbsoluto, mediaAcuracia, tabelaEstatisticas] = calculatesStatistics( groundTruthVideo, vectorDifferentObjects )
 % tabelaEstatisticas = [algo - GT - acertopercentual - c1 - c2]
 %   Detailed explanation goes here
 
 erroAbsoluto = abs(vectorDifferentObjects - groundTruthVideo);
 maxNoPeople = max(vectorDifferentObjects,groundTruthVideo);
 maxNoPeople(maxNoPeople == 0) = 1;
-acertoPercentual = 1 - erroAbsoluto./maxNoPeople;
-tabelaEstatisticas = [vectorDifferentObjects(:) groundTruthVideo(:) erroAbsoluto(:) acertoPercentual(:)];
+acuracia = 1 - erroAbsoluto./maxNoPeople;
+tabelaEstatisticas = [vectorDifferentObjects(:) groundTruthVideo(:) erroAbsoluto(:) acuracia(:)];
 mediaErroAbsoluto = mean(erroAbsoluto);
-mediaAcertoPercentual = mean(acertoPercentual);
+mediaAcuracia = mean(acuracia);
 
 mediaVetorCalculado = mean(vectorDifferentObjects);
 mediaGroundTruth    = mean(groundTruthVideo);
-
-
-plot(vectorDifferentObjects, 'bo-')
-hold on
-plot(groundTruthVideo, 'rx-')
-axis([1 length(vectorDifferentObjects) 0 5])
 
 end
 

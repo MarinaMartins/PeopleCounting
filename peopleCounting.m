@@ -29,7 +29,7 @@ videoName20 = strcat(pwd, '\videos\EnterExitCrossingPaths2front.mpg'); %DA PRA A
 N = 32;
 
 % Reading the video
-vidReader = VideoReader(videoName1);
+vidReader = VideoReader(videoName17);
 
 % Taking video information
 
@@ -61,7 +61,7 @@ while hasFrame(vidReader)
     % Defining ROI
     if(frameReal == 1)
         % BW = roipoly(frameRGB);
-        load('BW1.mat')
+        load('BW7.mat')
     end
     
     % Skipping 5 frames
@@ -74,9 +74,9 @@ while hasFrame(vidReader)
         frameGrayFiltered = imfilter(frameGray, G,'same');
         frameGrayFilteredMasked = frameGrayFiltered.*uint8(BW);
         
-%         frameGrayFilteredMasked = frameGrayFilteredMasked-medianPixelsInTime;
-%         imshow(frameGrayFilteredMasked);
-%         keyboard;
+        %         frameGrayFilteredMasked = frameGrayFilteredMasked-medianPixelsInTime;
+        %         imshow(frameGrayFilteredMasked);
+        %         keyboard;
         
         % Compute optical flow
         flow = estimateFlow(opticFlow, frameGrayFilteredMasked);
@@ -111,41 +111,41 @@ while hasFrame(vidReader)
             clusterVel = reshape(blocksVelTemporalFiltered, height*width / (N*N), 2);
             % Transforming multidimensional array in matrix Nx1, with magnitudes
             clusterMag= reshape(blocksMagTemporalFiltered, height*width / (N*N), 1);
-
+            
             % Filtering similar velocity vectors
             [ similarVelReduced, cluster4] = filterSimilarVels( clusterVel, clusterMag );
             
             % Creating multidimensional array (height/N)x(width /N, 2), in
-            % order to visualize        
+            % order to visualize
             blocksVelTemporalFiltered2 = reshape(similarVelReduced, height/N,width /N, 2);
             plotBlocksVelTemporalFiltered( blocksVelTemporalFiltered2, 'withFilter' );
-
+            
             % Hierarchical Clustering
-           [ distances, links, c, dend ] = hierarchicalClustering( clusterVel, 'nofilter', frame25to25 );           
-           [ distances2, links2, c2, ~ ] = hierarchicalClustering( similarVelReduced, 'withFilter',  frame25to25 );
-                   
-           % Estimated number of people
-            vectorDifferentObjects(frame25to25) = countDifferentObjects(links2, 0.15, 0.1);
+            [ distances, links, c, dend ] = hierarchicalClustering( clusterVel, 'nofilter', frame25to25 );
+            [ distances2, links2, c2, ~ ] = hierarchicalClustering( similarVelReduced, 'withFilter',  frame25to25 );
+            
+            % Estimated number of people
+            vectorDifferentObjectsWithFilter(frame25to25) = countDifferentObjects(links2, 0.15, 0.1);
             
             vectorDifferentObjectsNoFilter(frame25to25) = countDifferentObjects(links, 0.35, 0.1);
             disp('Number of Different Objects No Filter= ')
             disp(vectorDifferentObjectsNoFilter(frame25to25))
             
             disp('Number of Different Objects With Filter= ')
-            disp(vectorDifferentObjects(frame25to25))
+            disp(vectorDifferentObjectsWithFilter(frame25to25))
             
             disp('Frame25to25 = ')
-            disp(frame25to25)          
-          
+            disp(frame25to25)
+            
             blocksMag5 = zeros(height/N, width/N, 5);
             blocksVel5 = zeros(height/N, width/N, 2, 5);
             
             frame25to25 = frame25to25 + 1;
-           keyboard;
+            keyboard;
         end
         
-        showFrames(frameRGB, frameGrayFilteredMasked); % if want to show flow, add parameter flow      
-        % showBlocksOriginalDimensions(N, height, width, blocksMag);       
+        showFrames(frameRGB, frameGrayFilteredMasked); % if want to show flow, add parameter flow
+        % showBlocksOriginalDimensions(N, height, width, blocksMag);
         % keyboard;
         frame5to5 = frame5to5 + 1;
     end

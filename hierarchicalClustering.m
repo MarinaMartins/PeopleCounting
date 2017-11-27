@@ -13,22 +13,22 @@ else
     value = 10;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clusterVelSemZeros = [];
-for i = 1:(length(clusterVel))
-    if(hypot(clusterVel(i,1),clusterVel(i,2))> 0.0008)
-        clusterVelSemZeros = [clusterVelSemZeros ;clusterVel(i,:)];
-    end
-end
-clusterVel = clusterVelSemZeros;
-figure(200+value)
-% subplot(2,2,1);
-plot(clusterVelSemZeros(:,1), clusterVelSemZeros(:,2), 'bx', 'LineWidth',4, 'MarkerSize', 30);
-axis([-.5 .5 -.5 .5]);
-title(strcat('Velocidades como Pontos', 'SEM ZEROS'), 'FontSize',40)
-set(gca,'DefaultTextFontSize',35)
-set(gca,'FontSize',35)
-set(gca, 'XTick',-.5:0.1:.5, 'FontSize',35)
-set(gca, 'YTick',-.5:0.25:.5, 'FontSize',35)
+% clusterVelSemZeros = [];
+% for i = 1:(length(clusterVel))
+%     if(hypot(clusterVel(i,1),clusterVel(i,2))> 0.0008)
+%         clusterVelSemZeros = [clusterVelSemZeros ;clusterVel(i,:)];
+%     end
+% end
+% clusterVel = clusterVelSemZeros;
+% figure(200+value)
+% % subplot(2,2,1);
+% plot(clusterVelSemZeros(:,1), clusterVelSemZeros(:,2), 'bx', 'LineWidth',4, 'MarkerSize', 30);
+% axis([-.5 .5 -.5 .5]);
+% title(strcat('Velocidades como Pontos', 'SEM ZEROS'), 'FontSize',40)
+% set(gca,'DefaultTextFontSize',35)
+% set(gca,'FontSize',35)
+% set(gca, 'XTick',-.5:0.1:.5, 'FontSize',35)
+% set(gca, 'YTick',-.5:0.25:.5, 'FontSize',35)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 distances = pdist(clusterVel); % clusterVel
 % Calculating links
